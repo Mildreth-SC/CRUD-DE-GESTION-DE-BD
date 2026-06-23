@@ -24,6 +24,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Cliente_Obtener
     @CustomerID INT
 AS
@@ -40,6 +45,11 @@ BEGIN
     FROM Sales.Customer c
     WHERE c.CustomerID = @CustomerID;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Cliente_Guardar
@@ -67,6 +77,11 @@ BEGIN
         WHERE CustomerID = @CustomerID;
     END
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Cliente_Eliminar
@@ -103,6 +118,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Vendedor_Obtener
     @BusinessEntityID INT
 AS
@@ -121,6 +141,11 @@ BEGIN
     FROM Sales.SalesPerson sp
     WHERE sp.BusinessEntityID = @BusinessEntityID;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Vendedor_Guardar
@@ -148,6 +173,11 @@ BEGIN
         WHERE BusinessEntityID = @BusinessEntityID;
     END
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Vendedor_Eliminar
@@ -191,6 +221,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Producto_Obtener
     @ProductID INT
 AS
@@ -202,6 +237,11 @@ BEGIN
     FROM Production.Product p
     WHERE p.ProductID = @ProductID;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Producto_Guardar
@@ -242,6 +282,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Producto_Eliminar
     @ProductID INT
 AS
@@ -263,6 +308,11 @@ BEGIN
     INNER JOIN Production.ProductCategory c ON sc.ProductCategoryID = c.ProductCategoryID
     ORDER BY sc.ProductSubcategoryID;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Subcategoria_Guardar
@@ -287,6 +337,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Subcategoria_Eliminar
     @ProductSubcategoryID INT
 AS
@@ -309,6 +364,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Categoria_Guardar
     @ProductCategoryID INT = NULL OUTPUT,
     @Name NVARCHAR(50)
@@ -328,6 +388,11 @@ BEGIN
         WHERE ProductCategoryID = @ProductCategoryID;
     END
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Categoria_Eliminar
@@ -352,6 +417,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Territorio_Guardar
     @TerritoryID INT = NULL OUTPUT,
     @Name NVARCHAR(50),
@@ -373,6 +443,11 @@ BEGIN
         WHERE TerritoryID = @TerritoryID;
     END
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Territorio_Eliminar

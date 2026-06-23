@@ -2,6 +2,11 @@
 USE AdventureWorks2025;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Reporte_DetalleVentas
     @FechaInicio DATE,
     @FechaFin DATE,
@@ -32,6 +37,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Reporte_ResumenVentas
     @FechaInicio DATE,
     @FechaFin DATE,
@@ -56,6 +66,11 @@ BEGIN
     GROUP BY h.CustomerID, h.SalesPersonID
     ORDER BY TotalVentas DESC;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Reporte_DetallePorProducto
@@ -84,6 +99,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Reporte_ResumenPorProducto
     @FechaInicio DATE,
     @FechaFin DATE,
@@ -106,6 +126,11 @@ BEGIN
     GROUP BY p.ProductID, p.Name, p.ProductNumber
     ORDER BY TotalVentas DESC;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Reporte_DetallePorCategoria
@@ -135,6 +160,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Reporte_ResumenPorCategoria
     @FechaInicio DATE,
     @FechaFin DATE,
@@ -158,6 +188,11 @@ BEGIN
     GROUP BY c.ProductCategoryID, c.Name
     ORDER BY TotalVentas DESC;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Reporte_DetallePorTerritorio
@@ -191,6 +226,11 @@ BEGIN
       AND (@ProductID IS NULL OR p.ProductID = @ProductID)
     ORDER BY t.Name, c.Name, p.Name, h.OrderDate;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Reporte_ResumenPorTerritorio

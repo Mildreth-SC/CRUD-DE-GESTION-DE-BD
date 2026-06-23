@@ -2,6 +2,11 @@
 USE AdventureWorks2025;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_Listar
     @FechaInicio DATE = NULL,
     @FechaFin DATE = NULL,
@@ -37,6 +42,11 @@ BEGIN
       AND (@IncluirAnuladas = 1 OR COALESCE(h.Anulado, 0) = 0)
     ORDER BY h.OrderDate DESC, h.SalesOrderID DESC;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_Obtener
@@ -83,6 +93,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_Crear
     @CustomerID INT,
     @SalesPersonID INT = NULL,
@@ -114,6 +129,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_ActualizarEncabezado
     @SalesOrderID INT,
     @CustomerID INT,
@@ -134,6 +154,11 @@ BEGIN
         ModifiedDate = SYSDATETIME()
     WHERE SalesOrderID = @SalesOrderID;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_AgregarDetalle
@@ -170,6 +195,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_ActualizarDetalle
     @SalesOrderDetailID INT,
     @OrderQty SMALLINT,
@@ -195,6 +225,11 @@ BEGIN
 END;
 GO
 
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_EliminarDetalle
     @SalesOrderDetailID INT
 AS
@@ -209,6 +244,11 @@ BEGIN
     DELETE FROM Sales.SalesOrderDetail WHERE SalesOrderDetailID = @SalesOrderDetailID;
     EXEC Sales.usp_Venta_RecalcularTotales @SalesOrderID;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_RecalcularTotales
@@ -227,6 +267,11 @@ BEGIN
         ModifiedDate = SYSDATETIME()
     WHERE SalesOrderID = @SalesOrderID;
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_Anular
@@ -267,6 +312,11 @@ BEGIN
         THROW;
     END CATCH
 END;
+GO
+
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
 GO
 
 CREATE OR ALTER PROCEDURE Sales.usp_Venta_Confirmar

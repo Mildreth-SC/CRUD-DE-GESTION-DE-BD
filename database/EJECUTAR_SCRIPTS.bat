@@ -27,19 +27,19 @@ echo.
 echo Ejecutando scripts...
 echo.
 
-sqlcmd -S %SERVER% -C -E -d %DATABASE% -i "%~dp001_schema_extensions.sql"
+sqlcmd -S %SERVER% -C -E -I -d %DATABASE% -i "%~dp001_schema_extensions.sql"
 if errorlevel 1 goto error
 
-sqlcmd -S %SERVER% -C -E -d %DATABASE% -i "%~dp002_functions.sql"
+sqlcmd -S %SERVER% -C -E -I -d %DATABASE% -i "%~dp002_functions.sql"
 if errorlevel 1 goto error
 
-sqlcmd -S %SERVER% -C -E -d %DATABASE% -i "%~dp003_stored_procedures_catalogos.sql"
+sqlcmd -S %SERVER% -C -E -I -d %DATABASE% -i "%~dp003_stored_procedures_catalogos.sql"
 if errorlevel 1 goto error
 
-sqlcmd -S %SERVER% -C -E -d %DATABASE% -i "%~dp004_stored_procedures_movimientos.sql"
+sqlcmd -S %SERVER% -C -E -I -d %DATABASE% -i "%~dp004_stored_procedures_movimientos.sql"
 if errorlevel 1 goto error
 
-sqlcmd -S %SERVER% -C -E -d %DATABASE% -i "%~dp005_stored_procedures_reportes.sql"
+sqlcmd -S %SERVER% -C -E -I -d %DATABASE% -i "%~dp005_stored_procedures_reportes.sql"
 if errorlevel 1 goto error
 
 echo.
@@ -47,7 +47,7 @@ echo ============================================
 echo   LISTO - Scripts ejecutados correctamente
 echo ============================================
 echo.
-sqlcmd -S %SERVER% -C -E -d %DATABASE% -Q "SELECT COUNT(*) AS Clientes FROM Sales.Customer" -W
+sqlcmd -S %SERVER% -C -E -I -d %DATABASE% -Q "SELECT COUNT(*) AS Clientes FROM Sales.Customer" -W
 echo.
 pause
 exit /b 0
