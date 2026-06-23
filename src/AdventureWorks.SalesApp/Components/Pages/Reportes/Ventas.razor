@@ -7,20 +7,21 @@
 <PageTitle>Reporte de Ventas</PageTitle>
 
 <h3>Detalle y Resumen de Ventas</h3>
+<p class="text-muted small">Ventas por cliente y vendedor. Los datos de AdventureWorks2025 van aproximadamente de mayo 2022 a junio 2025.</p>
 
 <div class="card mb-3"><div class="card-body row g-2">
     <div class="col-md-2"><label class="form-label">Desde</label><InputDate class="form-control" @bind-Value="filtro.FechaInicio" /></div>
     <div class="col-md-2"><label class="form-label">Hasta</label><InputDate class="form-control" @bind-Value="filtro.FechaFin" /></div>
     <div class="col-md-3">
         <label class="form-label">Cliente</label>
-        <select class="form-select" @bind="filtro.CustomerID">
+        <select class="form-select" value="@ClienteSeleccionado" @onchange="OnClienteChanged">
             <option value="">Todos</option>
             @foreach (var c in clientes) { <option value="@c.CustomerID">@c.NombreCompleto</option> }
         </select>
     </div>
     <div class="col-md-3">
         <label class="form-label">Vendedor</label>
-        <select class="form-select" @bind="filtro.SalesPersonID">
+        <select class="form-select" value="@VendedorSeleccionado" @onchange="OnVendedorChanged">
             <option value="">Todos</option>
             @foreach (var v in vendedores) { <option value="@v.BusinessEntityID">@v.NombreCompleto</option> }
         </select>
@@ -33,31 +34,66 @@
 
 @if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
 
-@if (modoDetalle)
+@if (generado && modoDetalle)
 {
-    <h5>Detalle de Ventas</h5>
-    <table class="table table-sm table-striped">
-        <thead class="table-dark"><tr><th>Orden</th><th>Fecha</th><th>Cliente</th><th>Vendedor</th><th>Producto</th><th>Cant.</th><th>Total</th></tr></thead>
-        <tbody>
-            @foreach (var r in detalle)
-            {
-                <tr><td>@r.SalesOrderNumber</td><td>@r.OrderDate.ToString("dd/MM/yy")</td><td>@r.Cliente</td><td>@r.Vendedor</td><td>@r.Producto</td><td>@r.OrderQty</td><td>@r.LineTotal.ToString("C")</td></tr>
-            }
-        </tbody>
-    </table>
+    <h5>Detalle de Ventas <span class="badge bg-secondary">@detalle.Count filas</span></h5>
+    @if (detalle.Count == 0)
+    {
+        <div class="alert alert-info">No hay ventas en el rango de fechas seleccionado.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead class="table-dark"><tr><th>Orden</th><th>Fecha</th><th>Cliente</th><th>Vendedor</th><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Total</th></tr></thead>
+                <tbody>
+                    @foreach (var r in detalle)
+                    {
+                        <tr>
+                            <td>@r.SalesOrderNumber</td>
+                            <td>@r.OrderDate.ToString("dd/MM/yyyy")</td>
+                            <td>@r.Cliente</td>
+                            <td>@r.Vendedor</td>
+                            <td>@r.Producto</td>
+                            <td>@r.OrderQty</td>
+                            <td>@r.UnitPrice.ToString("C")</td>
+                            <td>@r.LineTotal.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 }
-else if (resumen.Any())
+else if (generado && !modoDetalle)
 {
-    <h5>Resumen de Ventas</h5>
-    <table class="table table-striped">
-        <thead class="table-dark"><tr><th>Cliente</th><th>Vendedor</th><th>Órdenes</th><th>Subtotal</th><th>Impuestos</th><th>Flete</th><th>Total</th></tr></thead>
-        <tbody>
-            @foreach (var r in resumen)
-            {
-                <tr><td>@r.Cliente</td><td>@r.Vendedor</td><td>@r.CantidadOrdenes</td><td>@r.SubTotal.ToString("C")</td><td>@r.Impuestos.ToString("C")</td><td>@r.Flete.ToString("C")</td><td class="fw-bold">@r.TotalVentas.ToString("C")</td></tr>
-            }
-        </tbody>
-    </table>
+    <h5>Resumen de Ventas <span class="badge bg-secondary">@resumen.Count filas</span></h5>
+    @if (resumen.Count == 0)
+    {
+        <div class="alert alert-info">No hay ventas en el rango de fechas seleccionado.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark"><tr><th>Cliente</th><th>Vendedor</th><th>Órdenes</th><th>Subtotal</th><th>Impuestos</th><th>Flete</th><th>Total</th></tr></thead>
+                <tbody>
+                    @foreach (var r in resumen)
+                    {
+                        <tr>
+                            <td>@r.Cliente</td>
+                            <td>@r.Vendedor</td>
+                            <td>@r.CantidadOrdenes</td>
+                            <td>@r.SubTotal.ToString("C")</td>
+                            <td>@r.Impuestos.ToString("C")</td>
+                            <td>@r.Flete.ToString("C")</td>
+                            <td class="fw-bold">@r.TotalVentas.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 }
 
 @code {
@@ -67,7 +103,11 @@ else if (resumen.Any())
     private List<ReporteDetalleVentaDto> detalle = [];
     private List<ReporteResumenVentaDto> resumen = [];
     private bool modoDetalle;
+    private bool generado;
     private string? error;
+
+    private string ClienteSeleccionado => filtro.CustomerID?.ToString() ?? "";
+    private string VendedorSeleccionado => filtro.SalesPersonID?.ToString() ?? "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,10 +119,21 @@ else if (resumen.Any())
         catch (Exception ex) { error = ex.Message; }
     }
 
+    private void OnClienteChanged(ChangeEventArgs e)
+    {
+        filtro.CustomerID = int.TryParse(e.Value?.ToString(), out var id) ? id : null;
+    }
+
+    private void OnVendedorChanged(ChangeEventArgs e)
+    {
+        filtro.SalesPersonID = int.TryParse(e.Value?.ToString(), out var id) ? id : null;
+    }
+
     private async Task Generar(bool detalleMode)
     {
         error = null;
         modoDetalle = detalleMode;
+        generado = true;
         try
         {
             if (detalleMode)

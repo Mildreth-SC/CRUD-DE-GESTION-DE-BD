@@ -85,8 +85,8 @@ def imprimir_reporte_consola(filas: list[dict], titulo: str) -> None:
 
 if __name__ == "__main__":
     cfg = DbConfig()
-    inicio = date(2026, 1, 1)
-    fin = date(2026, 6, 3)
+    inicio = date(2025, 1, 1)
+    fin = date(2025, 6, 29)
     resumen = ejecutar_reporte_resumen_ventas(inicio, fin, config=cfg)
     imprimir_reporte_consola(resumen, "Resumen de Ventas (Python)")
     detalle = ejecutar_reporte_detalle_por_producto(inicio, fin, config=cfg)

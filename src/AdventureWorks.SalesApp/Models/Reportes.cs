@@ -68,8 +68,8 @@ public class ReporteTerritorioDto
 
 public class FiltroReporteVentas
 {
-    public DateTime FechaInicio { get; set; } = new DateTime(2026, 1, 1);
-    public DateTime FechaFin { get; set; } = new DateTime(2026, 6, 3);
+    public DateTime FechaInicio { get; set; } = new DateTime(2025, 1, 1);
+    public DateTime FechaFin { get; set; } = new DateTime(2025, 6, 29);
     public int? CustomerID { get; set; }
     public int? SalesPersonID { get; set; }
     public int? ProductID { get; set; }
