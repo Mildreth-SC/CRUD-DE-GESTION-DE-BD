@@ -7,7 +7,7 @@
 @inject IdentityRedirectManager RedirectManager
 
 <StatusMessage Message="@errorMessage" />
-<EditForm Model="Input" OnValidSubmit="LoginUser" FormName="loginForm">
+<EditForm Model="Input" OnValidSubmit="LoginUser">
     <DataAnnotationsValidator />
     <ValidationSummary class="text-danger" role="alert" />
     <div class="form-floating mb-3">
@@ -43,7 +43,7 @@
 
     private InputModel Input { get; set; } = new();
 
-    public async Task LoginUser()
+    private async Task LoginUser()
     {
         var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
