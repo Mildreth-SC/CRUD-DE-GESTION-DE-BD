@@ -8,6 +8,14 @@ Sistema de gestión AdventureWorks2025 (esquema Sales) — Blazor, EF Core, Pyth
 - Python 3 (opcional, módulo `python/`)
 
 ## Configuración BD (una vez)
+
+**No abras los `.sql` ni el `.ps1` con doble clic** (se abren en Bloc de notas).
+
+### Forma fácil
+1. Entra a la carpeta `database`
+2. **Doble clic en `EJECUTAR_SCRIPTS.bat`** (ventana negra, no Bloc de notas)
+
+### Desde PowerShell
 ```powershell
 cd database
 .\configurar_bd.ps1
