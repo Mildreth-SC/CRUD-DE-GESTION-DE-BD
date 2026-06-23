@@ -7,7 +7,7 @@
 @inject IdentityRedirectManager RedirectManager
 
 <StatusMessage Message="@errorMessage" />
-<EditForm Model="Input" OnValidSubmit="LoginUser">
+<EditForm Model="Input" FormName="login" method="post" OnValidSubmit="LoginUser">
     <DataAnnotationsValidator />
     <ValidationSummary class="text-danger" role="alert" />
     <div class="form-floating mb-3">
@@ -38,10 +38,11 @@
     [Parameter] public string? ReturnUrl { get; set; }
     [Parameter] public bool ShowForgotPassword { get; set; } = true;
 
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
     private string? errorMessage;
     private readonly string rememberId = $"remember-{Guid.NewGuid():N}";
-
-    private InputModel Input { get; set; } = new();
 
     private async Task LoginUser()
     {
