@@ -109,14 +109,55 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRANSACTION;
     BEGIN TRY
+        DECLARE @BillToAddressID INT;
+        DECLARE @ShipToAddressID INT;
+        DECLARE @ShipMethodID INT = 1;
+        DECLARE @BusinessEntityID INT;
+
+        IF @TerritoryID IS NULL
+            SELECT @TerritoryID = TerritoryID FROM Sales.Customer WHERE CustomerID = @CustomerID;
+
+        SELECT @BusinessEntityID = COALESCE(PersonID, StoreID)
+        FROM Sales.Customer
+        WHERE CustomerID = @CustomerID;
+
+        SELECT TOP 1 @BillToAddressID = AddressID
+        FROM Person.BusinessEntityAddress
+        WHERE BusinessEntityID = @BusinessEntityID
+        ORDER BY AddressID;
+
+        IF @BillToAddressID IS NULL
+            SELECT TOP 1
+                @BillToAddressID = BillToAddressID,
+                @ShipToAddressID = ShipToAddressID,
+                @ShipMethodID = ShipMethodID
+            FROM Sales.SalesOrderHeader
+            WHERE CustomerID = @CustomerID
+            ORDER BY SalesOrderID DESC;
+
+        IF @BillToAddressID IS NULL
+            SELECT TOP 1
+                @BillToAddressID = BillToAddressID,
+                @ShipToAddressID = ShipToAddressID,
+                @ShipMethodID = ShipMethodID
+            FROM Sales.SalesOrderHeader
+            ORDER BY SalesOrderID;
+
+        SET @ShipToAddressID = COALESCE(@ShipToAddressID, @BillToAddressID);
+
+        IF @BillToAddressID IS NULL
+            THROW 50020, N'No se encontró dirección de facturación para el cliente.', 1;
+
         INSERT INTO Sales.SalesOrderHeader (
             RevisionNumber, OrderDate, DueDate, Status, OnlineOrderFlag,
             CustomerID, SalesPersonID, TerritoryID,
+            BillToAddressID, ShipToAddressID, ShipMethodID,
             SubTotal, TaxAmt, Freight, Comment, ModifiedDate, Anulado
         )
         VALUES (
             1, SYSDATETIME(), DATEADD(day, 7, SYSDATETIME()), 1, 0,
             @CustomerID, @SalesPersonID, @TerritoryID,
+            @BillToAddressID, @ShipToAddressID, @ShipMethodID,
             0, 0, 0, @Comment, SYSDATETIME(), 0
         );
         SET @SalesOrderID = SCOPE_IDENTITY();
