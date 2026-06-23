@@ -1,0 +1,40 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <AuthorizeView>
+        <Authorized>
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+        </Authorized>
+    </AuthorizeView>
+
+    <main class="content-area">
+        <div class="top-row px-4 d-flex justify-content-between align-items-center">
+            <span class="text-muted d-none d-sm-inline">AdventureWorks2025 — Esquema Sales</span>
+            <span class="text-muted d-sm-none">AW Sales</span>
+
+            <AuthorizeView>
+                <Authorized>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-muted small d-none d-md-inline">
+                            @context.User.Identity?.Name
+                        </span>
+                        <LogoutButton Text="Cerrar sesión"
+                                      ButtonClass="btn btn-outline-danger btn-sm"
+                                      CssClass="d-inline" />
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+        <article class="content px-4 py-3">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui">
+    Ha ocurrido un error.
+    <a href="" class="reload">Recargar</a>
+    <a class="dismiss">🗙</a>
+</div>

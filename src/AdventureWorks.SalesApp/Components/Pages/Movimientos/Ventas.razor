@@ -1,0 +1,232 @@
+@page "/movimientos/ventas"
+@page "/movimientos/ventas/{SalesOrderId:int}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IVentaService VentaService
+@inject ICatalogoService CatalogoService
+@inject NavigationManager Navigation
+
+<PageTitle>Movimiento de Ventas</PageTitle>
+
+<h3>Movimiento de Ventas</h3>
+
+@if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
+@if (!string.IsNullOrEmpty(mensaje)) { <div class="alert alert-success">@mensaje</div> }
+
+@if (SalesOrderId == 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Filtros de búsqueda</div>
+        <div class="card-body row g-2">
+            <div class="col-md-2"><label class="form-label">Desde</label><InputDate class="form-control" @bind-Value="filtroInicio" /></div>
+            <div class="col-md-2"><label class="form-label">Hasta</label><InputDate class="form-control" @bind-Value="filtroFin" /></div>
+            <div class="col-md-2"><label class="form-label">Cliente ID</label><input type="number" class="form-control" @bind="filtroClienteId" /></div>
+            <div class="col-md-2"><label class="form-label">Vendedor ID</label><input type="number" class="form-control" @bind="filtroVendedorId" /></div>
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check"><input type="checkbox" class="form-check-input" @bind="incluirAnuladas" id="anul" /><label class="form-check-label" for="anul">Incluir anuladas</label></div>
+            </div>
+            <div class="col-auto d-flex align-items-end gap-2">
+                <button class="btn btn-secondary" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-primary" @onclick="NuevaVenta">Nueva Venta</button>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr><th>ID</th><th>N° Orden</th><th>Fecha</th><th>Cliente</th><th>Vendedor</th><th>Total</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var v in ventas)
+            {
+                <tr class="@(v.Anulado ? "table-danger" : "")">
+                    <td>@v.SalesOrderID</td>
+                    <td>@v.SalesOrderNumber</td>
+                    <td>@v.OrderDate.ToString("dd/MM/yyyy")</td>
+                    <td>@v.Cliente</td>
+                    <td>@v.Vendedor</td>
+                    <td>@v.TotalDue.ToString("C")</td>
+                    <td>@(v.Anulado ? "ANULADA" : "Activa")</td>
+                    <td><button class="btn btn-sm btn-info text-white" @onclick="() => Ver(v.SalesOrderID)">Abrir</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+  @if (venta is not null)
+  {
+    <div class="d-flex justify-content-between mb-3">
+        <button class="btn btn-outline-secondary" @onclick="Volver">← Volver al listado</button>
+        <div class="gap-2 d-flex">
+            <a class="btn btn-outline-primary" href="@($"api/pdf/venta/{SalesOrderId}")" target="_blank">Descargar PDF</a>
+            @if (!venta.Encabezado.Anulado)
+            {
+                <button class="btn btn-warning" @onclick="Confirmar">Confirmar Venta</button>
+                <button class="btn btn-danger" @onclick="Anular">Anular Venta</button>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between">
+            <span>Orden @venta.Encabezado.SalesOrderNumber</span>
+            @if (venta.Encabezado.Anulado)
+            {
+                <span class="badge bg-danger">ANULADA - @venta.Encabezado.FechaAnulacion?.ToString("dd/MM/yyyy HH:mm")</span>
+            }
+        </div>
+        <div class="card-body row g-2">
+            <div class="col-md-3"><label class="form-label">Cliente ID</label><input type="number" class="form-control" @bind="venta.Encabezado.CustomerID" disabled="@venta.Encabezado.Anulado" /></div>
+            <div class="col-md-3"><label class="form-label">Vendedor ID</label><input type="number" class="form-control" @bind="venta.Encabezado.SalesPersonID" disabled="@venta.Encabezado.Anulado" /></div>
+            <div class="col-md-3"><label class="form-label">Territorio ID</label><input type="number" class="form-control" @bind="venta.Encabezado.TerritoryID" disabled="@venta.Encabezado.Anulado" /></div>
+            <div class="col-md-3"><label class="form-label">Comentario</label><input class="form-control" @bind="venta.Encabezado.Comment" disabled="@venta.Encabezado.Anulado" /></div>
+            @if (!venta.Encabezado.Anulado)
+            {
+                <div class="col-12"><button class="btn btn-primary" @onclick="GuardarEncabezado">Guardar encabezado</button></div>
+            }
+        </div>
+    </div>
+
+    @if (!venta.Encabezado.Anulado)
+    {
+        <div class="card mb-3">
+            <div class="card-header">Agregar ítem</div>
+            <div class="card-body row g-2">
+                <div class="col-md-2"><label class="form-label">Producto ID</label><input type="number" class="form-control" @bind="nuevoItem.ProductID" /></div>
+                <div class="col-md-2"><label class="form-label">Cantidad</label><input type="number" class="form-control" @bind="nuevoItem.OrderQty" /></div>
+                <div class="col-md-2"><label class="form-label">Precio</label><input type="number" step="0.01" class="form-control" @bind="nuevoItem.UnitPrice" /></div>
+                <div class="col-md-2"><label class="form-label">Descuento</label><input type="number" step="0.01" class="form-control" @bind="nuevoItem.UnitPriceDiscount" /></div>
+                <div class="col-auto d-flex align-items-end"><button class="btn btn-success" @onclick="AgregarItem">Agregar</button></div>
+            </div>
+        </div>
+    }
+
+    <table class="table table-bordered">
+        <thead class="table-dark"><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Desc.</th><th>Total</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var d in venta.Detalles)
+            {
+                <tr>
+                    <td>@d.Producto (@d.ProductNumber)</td>
+                    <td>@d.OrderQty</td>
+                    <td>@d.UnitPrice.ToString("C")</td>
+                    <td>@d.UnitPriceDiscount.ToString("P")</td>
+                    <td>@d.LineTotal.ToString("C")</td>
+                    <td>
+                        @if (!venta.Encabezado.Anulado)
+                        {
+                            <button class="btn btn-sm btn-danger" @onclick="() => EliminarItem(d.SalesOrderDetailID)">Eliminar</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr><td colspan="4" class="text-end fw-bold">Subtotal</td><td>@venta.Encabezado.SubTotal.ToString("C")</td><td></td></tr>
+            <tr><td colspan="4" class="text-end">Impuestos</td><td>@venta.Encabezado.TaxAmt.ToString("C")</td><td></td></tr>
+            <tr><td colspan="4" class="text-end">Flete</td><td>@venta.Encabezado.Freight.ToString("C")</td><td></td></tr>
+            <tr><td colspan="4" class="text-end fw-bold">Total</td><td class="fw-bold">@venta.Encabezado.TotalDue.ToString("C")</td><td></td></tr>
+        </tfoot>
+    </table>
+  }
+}
+
+@code {
+    [Parameter] public int SalesOrderId { get; set; }
+
+    private List<VentaEncabezadoDto> ventas = [];
+    private VentaCompletaDto? venta;
+    private VentaDetalleDto nuevoItem = new() { OrderQty = 1 };
+    private DateTime? filtroInicio = new DateTime(2026, 1, 1);
+    private DateTime? filtroFin = new DateTime(2026, 6, 3);
+    private int? filtroClienteId, filtroVendedorId;
+    private bool incluirAnuladas = true;
+    private string? mensaje, error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (SalesOrderId > 0)
+            await CargarVenta();
+        else
+            await Buscar();
+    }
+
+    private async Task Buscar()
+    {
+        error = null;
+        try { ventas = (await VentaService.ListarVentasAsync(filtroInicio, filtroFin, filtroClienteId, filtroVendedorId, incluirAnuladas)).ToList(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task CargarVenta()
+    {
+        error = null;
+        try { venta = await VentaService.ObtenerVentaAsync(SalesOrderId); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private void Ver(int id) => Navigation.NavigateTo($"/movimientos/ventas/{id}");
+    private void Volver() => Navigation.NavigateTo("/movimientos/ventas");
+
+    private async Task NuevaVenta()
+    {
+        try
+        {
+            var clientes = await CatalogoService.ListarClientesAsync();
+            var primerCliente = clientes.FirstOrDefault();
+            if (primerCliente is null) { error = "No hay clientes registrados."; return; }
+            var id = await VentaService.CrearVentaAsync(primerCliente.CustomerID, null, primerCliente.TerritoryID, null);
+            Navigation.NavigateTo($"/movimientos/ventas/{id}");
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task GuardarEncabezado()
+    {
+        if (venta is null) return;
+        try
+        {
+            await VentaService.ActualizarEncabezadoAsync(venta.Encabezado.SalesOrderID, venta.Encabezado.CustomerID,
+                venta.Encabezado.SalesPersonID, venta.Encabezado.TerritoryID, venta.Encabezado.Comment);
+            mensaje = "Encabezado actualizado.";
+            await CargarVenta();
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task AgregarItem()
+    {
+        if (venta is null) return;
+        try
+        {
+            await VentaService.AgregarDetalleAsync(venta.Encabezado.SalesOrderID, nuevoItem.ProductID,
+                nuevoItem.OrderQty, nuevoItem.UnitPrice, nuevoItem.UnitPriceDiscount);
+            nuevoItem = new VentaDetalleDto { OrderQty = 1 };
+            mensaje = "Ítem agregado.";
+            await CargarVenta();
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task EliminarItem(int detailId)
+    {
+        try { await VentaService.EliminarDetalleAsync(detailId); mensaje = "Ítem eliminado."; await CargarVenta(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Anular()
+    {
+        if (venta is null) return;
+        try { await VentaService.AnularVentaAsync(venta.Encabezado.SalesOrderID); mensaje = "Venta anulada."; await CargarVenta(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Confirmar()
+    {
+        if (venta is null) return;
+        try { await VentaService.ConfirmarVentaAsync(venta.Encabezado.SalesOrderID); mensaje = "Venta confirmada. Saldos actualizados."; await CargarVenta(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+}

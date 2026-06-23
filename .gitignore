@@ -1,0 +1,38 @@
+# Build
+bin/
+obj/
+out/
+publish/
+
+# .NET
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# SQLite usuarios (se crea al ejecutar la app)
+**/Data/app.db
+**/Data/app.db-*
+
+# Logs y temporales
+*.log
+*.tmp
+*.bak
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Cursor
+.cursor/
+assets/

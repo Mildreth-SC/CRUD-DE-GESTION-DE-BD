@@ -1,0 +1,54 @@
+<div class="nav-menu p-3 d-flex flex-column h-100">
+    <AuthorizeView>
+        <Authorized>
+            <div class="mb-3 pb-3 border-bottom border-secondary">
+                <h5 class="text-white mb-1">Menú Principal</h5>
+                <small class="text-white-50">@context.User.Identity?.Name</small>
+            </div>
+
+            <nav class="nav flex-column flex-grow-1">
+                <NavLink class="nav-link text-white-50" href="" Match="NavLinkMatch.All">Inicio</NavLink>
+
+                <div class="text-uppercase text-white-50 small mt-3 mb-1">Catálogos</div>
+                <NavLink class="nav-link text-white-50" href="catalogos/clientes">Clientes</NavLink>
+                <NavLink class="nav-link text-white-50" href="catalogos/vendedores">Vendedores</NavLink>
+                <NavLink class="nav-link text-white-50" href="catalogos/productos">Productos</NavLink>
+                <NavLink class="nav-link text-white-50" href="catalogos/subcategorias">Subcategorías</NavLink>
+                <NavLink class="nav-link text-white-50" href="catalogos/categorias">Categorías</NavLink>
+                <NavLink class="nav-link text-white-50" href="catalogos/territorios">Territorios</NavLink>
+
+                <div class="text-uppercase text-white-50 small mt-3 mb-1">Movimientos</div>
+                <NavLink class="nav-link text-white-50" href="movimientos/ventas">Movimiento de Ventas</NavLink>
+
+                <div class="text-uppercase text-white-50 small mt-3 mb-1">Reportes</div>
+                <NavLink class="nav-link text-white-50" href="reportes/ventas">Detalle / Resumen Ventas</NavLink>
+                <NavLink class="nav-link text-white-50" href="reportes/productos">Por Producto</NavLink>
+                <NavLink class="nav-link text-white-50" href="reportes/categorias">Por Categoría</NavLink>
+                <NavLink class="nav-link text-white-50" href="reportes/territorios">Por Territorio</NavLink>
+
+                <AuthorizeView Roles="Administrador">
+                    <Authorized Context="admin">
+                        <div class="text-uppercase text-white-50 small mt-3 mb-1">Administración</div>
+                        <NavLink class="nav-link text-white-50" href="admin/usuarios">Usuarios</NavLink>
+                    </Authorized>
+                </AuthorizeView>
+            </nav>
+
+            <div class="mt-auto pt-3 border-top border-secondary">
+                <div class="text-uppercase text-white-50 small mb-2">Sesión</div>
+                <LogoutButton Text="Salir" ButtonClass="btn btn-outline-light btn-sm w-100" ShowIcon="true" />
+            </div>
+        </Authorized>
+    </AuthorizeView>
+</div>
+
+<style>
+    .nav-menu .nav-link.active {
+        background: rgba(255,255,255,0.15);
+        color: white !important;
+        border-radius: 4px;
+    }
+    .nav-menu .nav-link:hover {
+        color: white !important;
+    }
+</style>

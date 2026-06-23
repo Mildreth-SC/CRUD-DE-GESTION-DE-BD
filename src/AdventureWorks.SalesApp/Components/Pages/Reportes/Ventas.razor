@@ -1,0 +1,101 @@
+@page "/reportes/ventas"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IReporteService ReporteService
+@inject ICatalogoService CatalogoService
+
+<PageTitle>Reporte de Ventas</PageTitle>
+
+<h3>Detalle y Resumen de Ventas</h3>
+
+<div class="card mb-3"><div class="card-body row g-2">
+    <div class="col-md-2"><label class="form-label">Desde</label><InputDate class="form-control" @bind-Value="filtro.FechaInicio" /></div>
+    <div class="col-md-2"><label class="form-label">Hasta</label><InputDate class="form-control" @bind-Value="filtro.FechaFin" /></div>
+    <div class="col-md-3">
+        <label class="form-label">Cliente</label>
+        <select class="form-select" @bind="filtro.CustomerID">
+            <option value="">Todos</option>
+            @foreach (var c in clientes) { <option value="@c.CustomerID">@c.NombreCompleto</option> }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Vendedor</label>
+        <select class="form-select" @bind="filtro.SalesPersonID">
+            <option value="">Todos</option>
+            @foreach (var v in vendedores) { <option value="@v.BusinessEntityID">@v.NombreCompleto</option> }
+        </select>
+    </div>
+    <div class="col-auto d-flex align-items-end gap-2">
+        <button class="btn btn-primary" @onclick="() => Generar(true)">Detalle</button>
+        <button class="btn btn-secondary" @onclick="() => Generar(false)">Resumen</button>
+    </div>
+</div></div>
+
+@if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
+
+@if (modoDetalle)
+{
+    <h5>Detalle de Ventas</h5>
+    <table class="table table-sm table-striped">
+        <thead class="table-dark"><tr><th>Orden</th><th>Fecha</th><th>Cliente</th><th>Vendedor</th><th>Producto</th><th>Cant.</th><th>Total</th></tr></thead>
+        <tbody>
+            @foreach (var r in detalle)
+            {
+                <tr><td>@r.SalesOrderNumber</td><td>@r.OrderDate.ToString("dd/MM/yy")</td><td>@r.Cliente</td><td>@r.Vendedor</td><td>@r.Producto</td><td>@r.OrderQty</td><td>@r.LineTotal.ToString("C")</td></tr>
+            }
+        </tbody>
+    </table>
+}
+else if (resumen.Any())
+{
+    <h5>Resumen de Ventas</h5>
+    <table class="table table-striped">
+        <thead class="table-dark"><tr><th>Cliente</th><th>Vendedor</th><th>Órdenes</th><th>Subtotal</th><th>Impuestos</th><th>Flete</th><th>Total</th></tr></thead>
+        <tbody>
+            @foreach (var r in resumen)
+            {
+                <tr><td>@r.Cliente</td><td>@r.Vendedor</td><td>@r.CantidadOrdenes</td><td>@r.SubTotal.ToString("C")</td><td>@r.Impuestos.ToString("C")</td><td>@r.Flete.ToString("C")</td><td class="fw-bold">@r.TotalVentas.ToString("C")</td></tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private FiltroReporteVentas filtro = new();
+    private List<ClienteDto> clientes = [];
+    private List<VendedorDto> vendedores = [];
+    private List<ReporteDetalleVentaDto> detalle = [];
+    private List<ReporteResumenVentaDto> resumen = [];
+    private bool modoDetalle;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            clientes = (await CatalogoService.ListarClientesAsync()).ToList();
+            vendedores = (await CatalogoService.ListarVendedoresAsync()).ToList();
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Generar(bool detalleMode)
+    {
+        error = null;
+        modoDetalle = detalleMode;
+        try
+        {
+            if (detalleMode)
+            {
+                detalle = (await ReporteService.DetalleVentasAsync(filtro)).ToList();
+                resumen = [];
+            }
+            else
+            {
+                resumen = (await ReporteService.ResumenVentasAsync(filtro)).ToList();
+                detalle = [];
+            }
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+}

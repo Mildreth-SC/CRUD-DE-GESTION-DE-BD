@@ -1,0 +1,94 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>Inicio - AdventureWorks Sales</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="text-center py-4">
+            <h1 class="display-5">Sistema de Gestión de Ventas</h1>
+            <p class="lead text-muted">Bienvenido, @context.User.Identity?.Name</p>
+            <p class="text-muted">AdventureWorks2025 — Esquema Sales | 03/06/2026</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-primary border-opacity-25">
+                    <div class="card-body">
+                        <h5 class="card-title">Catálogos</h5>
+                        <p class="card-text">Clientes, vendedores, productos, categorías y territorios.</p>
+                        <a href="catalogos/clientes" class="btn btn-primary">Ir a Catálogos</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-success border-opacity-25">
+                    <div class="card-body">
+                        <h5 class="card-title">Movimientos</h5>
+                        <p class="card-text">Registro, modificación, anulación y consulta de ventas con PDF.</p>
+                        <a href="movimientos/ventas" class="btn btn-success">Movimiento de Ventas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-info border-opacity-25">
+                    <div class="card-body">
+                        <h5 class="card-title">Reportes</h5>
+                        <p class="card-text">Detalle y resumen por cliente, vendedor, producto y territorio.</p>
+                        <a href="reportes/ventas" class="btn btn-info text-white">Ver Reportes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+
+    <NotAuthorized>
+        <div class="login-landing d-flex align-items-center justify-content-center">
+            <div class="text-center w-100">
+                @if (SesionCerrada)
+                {
+                    <div class="alert alert-success mx-auto mb-3" style="max-width: 420px;">
+                        Sesión cerrada correctamente.
+                    </div>
+                }
+                @if (RequiereSesion)
+                {
+                    <div class="alert alert-warning mx-auto mb-3" style="max-width: 420px;">
+                        Debe iniciar sesión para acceder a esa sección.
+                    </div>
+                }
+
+                <h1 class="display-4 fw-bold text-primary">AdventureWorks Sales</h1>
+                <p class="lead text-muted mt-3">Sistema de gestión — Esquema Sales</p>
+                <p class="text-muted mb-4">AdventureWorks2025 | 03/06/2026</p>
+
+                <div class="card shadow-sm mx-auto text-start" style="max-width: 420px;">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-center mb-3">Iniciar sesión</h5>
+                        <LoginForm ReturnUrl="@ReturnUrl" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .login-landing {
+        min-height: calc(100vh - 8rem);
+    }
+</style>
+
+@code {
+    [SupplyParameterFromQuery(Name = "logout")]
+    public string? Logout { get; set; }
+
+    [SupplyParameterFromQuery(Name = "login")]
+    public string? Login { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    private bool SesionCerrada => Logout == "1";
+    private bool RequiereSesion => Login == "1";
+}

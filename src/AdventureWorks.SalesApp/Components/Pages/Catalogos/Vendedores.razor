@@ -1,0 +1,87 @@
+@page "/catalogos/vendedores"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ICatalogoService CatalogoService
+
+<PageTitle>Vendedores</PageTitle>
+
+<h3>Catálogo de Vendedores</h3>
+
+@if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
+@if (!string.IsNullOrEmpty(mensaje)) { <div class="alert alert-info">@mensaje</div> }
+
+<div class="row mb-3">
+    <div class="col-md-4"><input class="form-control" placeholder="Buscar..." @bind="busqueda" /></div>
+    <div class="col-auto">
+        <button class="btn btn-secondary" @onclick="Cargar">Buscar</button>
+        <button class="btn btn-primary" @onclick="Nuevo">Nuevo</button>
+    </div>
+</div>
+
+@if (editando)
+{
+    <div class="card mb-3"><div class="card-body row g-2">
+        <div class="col-md-2"><label class="form-label">ID Persona</label><input type="number" class="form-control" @bind="form.BusinessEntityID" disabled="@(form.BusinessEntityID > 0 && esEdicion)" /></div>
+        <div class="col-md-2"><label class="form-label">Territorio</label><input type="number" class="form-control" @bind="form.TerritoryID" /></div>
+        <div class="col-md-2"><label class="form-label">Cuota</label><input type="number" step="0.01" class="form-control" @bind="form.SalesQuota" /></div>
+        <div class="col-md-2"><label class="form-label">Bono</label><input type="number" step="0.01" class="form-control" @bind="form.Bonus" /></div>
+        <div class="col-md-2"><label class="form-label">Comisión %</label><input type="number" step="0.01" class="form-control" @bind="form.CommissionPct" /></div>
+        <div class="col-md-2 d-flex align-items-end gap-2">
+            <button class="btn btn-success" @onclick="Guardar">Guardar</button>
+            <button class="btn btn-outline-secondary" @onclick="Cancelar">Cancelar</button>
+        </div>
+    </div></div>
+}
+
+<table class="table table-striped">
+    <thead class="table-dark"><tr><th>ID</th><th>Nombre</th><th>Territorio</th><th>Cuota</th><th>Ventas YTD</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var v in vendedores)
+        {
+            <tr>
+                <td>@v.BusinessEntityID</td>
+                <td>@v.NombreCompleto</td>
+                <td>@v.Territorio</td>
+                <td>@v.SalesQuota?.ToString("C")</td>
+                <td>@v.SalesYTD.ToString("C")</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" @onclick="() => Editar(v)">Editar</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(v.BusinessEntityID)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<VendedorDto> vendedores = [];
+    private VendedorDto form = new();
+    private bool editando, esEdicion;
+    private string busqueda = "";
+    private string? mensaje, error;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        error = null;
+        try { vendedores = (await CatalogoService.ListarVendedoresAsync(string.IsNullOrWhiteSpace(busqueda) ? null : busqueda)).ToList(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private void Nuevo() { form = new(); editando = true; esEdicion = false; }
+    private void Editar(VendedorDto v) { form = new VendedorDto { BusinessEntityID = v.BusinessEntityID, TerritoryID = v.TerritoryID, SalesQuota = v.SalesQuota, Bonus = v.Bonus, CommissionPct = v.CommissionPct }; editando = true; esEdicion = true; }
+    private void Cancelar() { editando = false; }
+
+    private async Task Guardar()
+    {
+        try { await CatalogoService.GuardarVendedorAsync(form); mensaje = "Guardado."; editando = false; await Cargar(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Eliminar(int id)
+    {
+        try { await CatalogoService.EliminarVendedorAsync(id); mensaje = "Eliminado."; await Cargar(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+}

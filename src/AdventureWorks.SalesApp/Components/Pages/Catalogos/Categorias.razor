@@ -1,0 +1,69 @@
+@page "/catalogos/categorias"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ICatalogoService CatalogoService
+
+<PageTitle>Categorías</PageTitle>
+
+<h3>Categorías de Producto</h3>
+
+@if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
+@if (!string.IsNullOrEmpty(mensaje)) { <div class="alert alert-info">@mensaje</div> }
+
+<button class="btn btn-primary mb-3" @onclick="Nuevo">Nueva Categoría</button>
+
+@if (editando)
+{
+    <div class="card mb-3"><div class="card-body row g-2">
+        <div class="col-md-4"><input class="form-control" placeholder="Nombre" @bind="form.Name" /></div>
+        <div class="col-auto"><button class="btn btn-success" @onclick="Guardar">Guardar</button></div>
+        <div class="col-auto"><button class="btn btn-outline-secondary" @onclick="() => editando = false">Cancelar</button></div>
+    </div></div>
+}
+
+<table class="table table-striped">
+    <thead class="table-dark"><tr><th>ID</th><th>Nombre</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var c in items)
+        {
+            <tr>
+                <td>@c.ProductCategoryID</td><td>@c.Name</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" @onclick="() => Editar(c)">Editar</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(c.ProductCategoryID)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<CategoriaDto> items = [];
+    private CategoriaDto form = new();
+    private bool editando;
+    private string? mensaje, error;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        error = null;
+        try { items = (await CatalogoService.ListarCategoriasAsync()).ToList(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private void Nuevo() { form = new(); editando = true; }
+    private void Editar(CategoriaDto c) { form = new CategoriaDto { ProductCategoryID = c.ProductCategoryID, Name = c.Name }; editando = true; }
+
+    private async Task Guardar()
+    {
+        try { await CatalogoService.GuardarCategoriaAsync(form); mensaje = "Guardado."; editando = false; await Cargar(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Eliminar(int id)
+    {
+        try { await CatalogoService.EliminarCategoriaAsync(id); mensaje = "Eliminado."; await Cargar(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+}

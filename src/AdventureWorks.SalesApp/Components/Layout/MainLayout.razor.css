@@ -1,0 +1,69 @@
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main.content-area {
+    flex: 1;
+    margin-left: 0;
+    width: 100%;
+}
+
+.page:has(.sidebar) .content-area {
+    margin-left: 260px;
+    width: auto;
+}
+
+.sidebar {
+    background: #1b2a4a;
+    width: 260px;
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-row {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    height: 3.5rem;
+}
+
+.content {
+    max-width: 1400px;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: relative;
+    }
+    .page:has(.sidebar) .content-area {
+        margin-left: 0;
+    }
+}

@@ -1,0 +1,130 @@
+@page "/catalogos/clientes"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ICatalogoService CatalogoService
+
+<PageTitle>Clientes</PageTitle>
+
+<h3>Catálogo de Clientes</h3>
+
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert alert-info">@mensaje</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <input class="form-control" placeholder="Buscar..." @bind="busqueda" @bind:event="oninput" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-secondary" @onclick="Cargar">Buscar</button>
+        <button class="btn btn-primary" @onclick="Nuevo">Nuevo</button>
+    </div>
+</div>
+
+@if (editando)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <label class="form-label">N° Cuenta</label>
+                    <input class="form-control" @bind="form.AccountNumber" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Territorio ID</label>
+                    <input type="number" class="form-control" @bind="form.TerritoryID" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Person ID</label>
+                    <input type="number" class="form-control" @bind="form.PersonID" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button class="btn btn-success" @onclick="Guardar">Guardar</button>
+                    <button class="btn btn-outline-secondary" @onclick="Cancelar">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Cuenta</th>
+                <th>Nombre</th>
+                <th>Territorio</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in clientes)
+            {
+                <tr>
+                    <td>@c.CustomerID</td>
+                    <td>@c.AccountNumber</td>
+                    <td>@c.NombreCompleto</td>
+                    <td>@c.Territorio</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" @onclick="() => Editar(c)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(c.CustomerID)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<ClienteDto> clientes = [];
+    private ClienteDto form = new();
+    private bool editando;
+    private string busqueda = "";
+    private string? mensaje;
+    private string? error;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        error = null;
+        try
+        {
+            clientes = (await CatalogoService.ListarClientesAsync(string.IsNullOrWhiteSpace(busqueda) ? null : busqueda)).ToList();
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private void Nuevo() { form = new ClienteDto(); editando = true; mensaje = null; }
+    private void Editar(ClienteDto c) { form = new ClienteDto { CustomerID = c.CustomerID, AccountNumber = c.AccountNumber, TerritoryID = c.TerritoryID, PersonID = c.PersonID, StoreID = c.StoreID }; editando = true; }
+    private void Cancelar() { editando = false; form = new(); }
+
+    private async Task Guardar()
+    {
+        try
+        {
+            await CatalogoService.GuardarClienteAsync(form);
+            mensaje = "Cliente guardado correctamente.";
+            editando = false;
+            await Cargar();
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Eliminar(int id)
+    {
+        try
+        {
+            await CatalogoService.EliminarClienteAsync(id);
+            mensaje = "Cliente eliminado.";
+            await Cargar();
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+}

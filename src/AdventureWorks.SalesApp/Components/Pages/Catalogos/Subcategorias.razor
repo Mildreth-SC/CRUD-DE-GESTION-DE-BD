@@ -1,0 +1,72 @@
+@page "/catalogos/subcategorias"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ICatalogoService CatalogoService
+
+<PageTitle>Subcategorías</PageTitle>
+
+<h3>Subcategorías de Producto</h3>
+
+@if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
+@if (!string.IsNullOrEmpty(mensaje)) { <div class="alert alert-info">@mensaje</div> }
+
+<button class="btn btn-primary mb-3" @onclick="Nuevo">Nueva Subcategoría</button>
+
+@if (editando)
+{
+    <div class="card mb-3"><div class="card-body row g-2">
+        <div class="col-md-4"><label class="form-label">Nombre</label><input class="form-control" @bind="form.Name" /></div>
+        <div class="col-md-3"><label class="form-label">Categoría ID</label><input type="number" class="form-control" @bind="form.ProductCategoryID" /></div>
+        <div class="col-auto d-flex align-items-end gap-2">
+            <button class="btn btn-success" @onclick="Guardar">Guardar</button>
+            <button class="btn btn-outline-secondary" @onclick="() => editando = false">Cancelar</button>
+        </div>
+    </div></div>
+}
+
+<table class="table table-striped">
+    <thead class="table-dark"><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var s in items)
+        {
+            <tr>
+                <td>@s.ProductSubcategoryID</td><td>@s.Name</td><td>@s.Categoria</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" @onclick="() => Editar(s)">Editar</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(s.ProductSubcategoryID)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<SubcategoriaDto> items = [];
+    private SubcategoriaDto form = new();
+    private bool editando;
+    private string? mensaje, error;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        error = null;
+        try { items = (await CatalogoService.ListarSubcategoriasAsync()).ToList(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private void Nuevo() { form = new(); editando = true; }
+    private void Editar(SubcategoriaDto s) { form = new SubcategoriaDto { ProductSubcategoryID = s.ProductSubcategoryID, Name = s.Name, ProductCategoryID = s.ProductCategoryID }; editando = true; }
+
+    private async Task Guardar()
+    {
+        try { await CatalogoService.GuardarSubcategoriaAsync(form); mensaje = "Guardado."; editando = false; await Cargar(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Eliminar(int id)
+    {
+        try { await CatalogoService.EliminarSubcategoriaAsync(id); mensaje = "Eliminado."; await Cargar(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+}

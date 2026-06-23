@@ -1,0 +1,93 @@
+@page "/reportes/territorios"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IReporteService ReporteService
+@inject ICatalogoService CatalogoService
+
+<PageTitle>Reporte por Territorio</PageTitle>
+
+<h3>Detalle / Resumen por Territorio, Categoría y Producto</h3>
+
+<div class="card mb-3"><div class="card-body row g-2">
+    <div class="col-md-2"><label class="form-label">Desde</label><InputDate class="form-control" @bind-Value="filtro.FechaInicio" /></div>
+    <div class="col-md-2"><label class="form-label">Hasta</label><InputDate class="form-control" @bind-Value="filtro.FechaFin" /></div>
+    <div class="col-md-2">
+        <label class="form-label">Territorio</label>
+        <select class="form-select" @bind="filtro.TerritoryID">
+            <option value="">Todos</option>
+            @foreach (var t in territorios) { <option value="@t.TerritoryID">@t.Name</option> }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Categoría</label>
+        <select class="form-select" @bind="filtro.ProductCategoryID">
+            <option value="">Todas</option>
+            @foreach (var c in categorias) { <option value="@c.ProductCategoryID">@c.Name</option> }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Producto</label>
+        <select class="form-select" @bind="filtro.ProductID">
+            <option value="">Todos</option>
+            @foreach (var p in productos) { <option value="@p.ProductID">@p.Name</option> }
+        </select>
+    </div>
+    <div class="col-auto d-flex align-items-end gap-2">
+        <button class="btn btn-primary" @onclick="() => Generar(true)">Detalle</button>
+        <button class="btn btn-secondary" @onclick="() => Generar(false)">Resumen</button>
+    </div>
+</div></div>
+
+@if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
+
+@if (modoDetalle)
+{
+    <table class="table table-sm table-striped">
+        <thead class="table-dark"><tr><th>Territorio</th><th>Categoría</th><th>Producto</th><th>Orden</th><th>Fecha</th><th>Cant.</th><th>Total</th></tr></thead>
+        <tbody>
+            @foreach (var r in datos) { <tr><td>@r.Territorio</td><td>@r.Categoria</td><td>@r.Producto</td><td>@r.SalesOrderNumber</td><td>@r.OrderDate?.ToString("dd/MM/yy")</td><td>@r.OrderQty</td><td>@r.LineTotal?.ToString("C")</td></tr> }
+        </tbody>
+    </table>
+}
+else if (datos.Any())
+{
+    <table class="table table-striped">
+        <thead class="table-dark"><tr><th>Territorio</th><th>Categoría</th><th>Producto</th><th>Cantidad</th><th>Total</th></tr></thead>
+        <tbody>
+            @foreach (var r in datos) { <tr><td>@r.Territorio</td><td>@r.Categoria</td><td>@r.Producto</td><td>@r.CantidadVendida</td><td class="fw-bold">@r.TotalVentas?.ToString("C")</td></tr> }
+        </tbody>
+    </table>
+}
+
+@code {
+    private FiltroReporteVentas filtro = new();
+    private List<TerritorioDto> territorios = [];
+    private List<CategoriaDto> categorias = [];
+    private List<ProductoDto> productos = [];
+    private List<ReporteTerritorioDto> datos = [];
+    private bool modoDetalle;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            territorios = (await CatalogoService.ListarTerritoriosAsync()).ToList();
+            categorias = (await CatalogoService.ListarCategoriasAsync()).ToList();
+            productos = (await CatalogoService.ListarProductosAsync()).ToList();
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Generar(bool detalleMode)
+    {
+        error = null; modoDetalle = detalleMode;
+        try
+        {
+            datos = detalleMode
+                ? (await ReporteService.DetallePorTerritorioAsync(filtro)).ToList()
+                : (await ReporteService.ResumenPorTerritorioAsync(filtro)).ToList();
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+}

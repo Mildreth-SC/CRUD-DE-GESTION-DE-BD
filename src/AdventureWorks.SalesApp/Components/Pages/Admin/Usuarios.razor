@@ -1,0 +1,134 @@
+@page "/admin/usuarios"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrador")]
+@inject IAdminUserService AdminUserService
+
+<PageTitle>Administración de Usuarios</PageTitle>
+
+<h3>Administración de Usuarios</h3>
+
+@if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
+@if (!string.IsNullOrEmpty(mensaje)) { <div class="alert alert-success">@mensaje</div> }
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="card mb-3">
+            <div class="card-header">Registrar usuario</div>
+            <div class="card-body">
+                <div class="mb-2"><label class="form-label">Email</label><input class="form-control" @bind="nuevo.Email" /></div>
+                <div class="mb-2"><label class="form-label">Contraseña</label><input type="password" class="form-control" @bind="nuevo.Password" /></div>
+                <div class="mb-2">
+                    <label class="form-label">Rol</label>
+                    <select class="form-select" @bind="nuevo.Rol">
+                        @foreach (var r in roles) { <option value="@r">@r</option> }
+                    </select>
+                </div>
+                <button class="btn btn-primary" @onclick="Crear">Registrar</button>
+            </div>
+        </div>
+
+        @if (usuarioSeleccionado is not null)
+        {
+            <div class="card">
+                <div class="card-header">Reinicio de contraseña — @usuarioSeleccionado.Email</div>
+                <div class="card-body">
+                    <input type="password" class="form-control mb-2" placeholder="Nueva contraseña" @bind="nuevaPassword" />
+                    <button class="btn btn-warning" @onclick="ReiniciarPassword">Reiniciar contraseña</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-7">
+        <table class="table table-striped">
+            <thead class="table-dark"><tr><th>Email</th><th>Roles</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var u in usuarios)
+                {
+                    <tr class="@(usuarioSeleccionado?.Id == u.Id ? "table-primary" : "")">
+                        <td>@u.Email</td>
+                        <td>@string.Join(", ", u.Roles)</td>
+                        <td>
+                            <button class="btn btn-sm btn-info text-white" @onclick="() => Seleccionar(u)">Gestionar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (usuarioSeleccionado is not null)
+        {
+            <div class="card mt-2">
+                <div class="card-header">Actualizar roles — @usuarioSeleccionado.Email</div>
+                <div class="card-body">
+                    @foreach (var r in roles)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rol_@r"
+                                   checked="@rolesSeleccionados.Contains(r)"
+                                   @onchange="e => ToggleRol(r, (bool)e.Value!)" />
+                            <label class="form-check-label" for="rol_@r">@r</label>
+                        </div>
+                    }
+                    <button class="btn btn-success mt-2" @onclick="GuardarRoles">Guardar roles</button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<UsuarioAdminDto> usuarios = [];
+    private UsuarioAdminDto? usuarioSeleccionado;
+    private CrearUsuarioRequest nuevo = new();
+    private HashSet<string> rolesSeleccionados = [];
+    private string nuevaPassword = "";
+    private readonly string[] roles = ["Administrador", "Usuario", "Reportes", "Ventas"];
+    private string? mensaje, error;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        error = null;
+        try { usuarios = (await AdminUserService.ListarUsuariosAsync()).ToList(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private void Seleccionar(UsuarioAdminDto u)
+    {
+        usuarioSeleccionado = u;
+        rolesSeleccionados = u.Roles.ToHashSet();
+        nuevaPassword = "";
+    }
+
+    private void ToggleRol(string rol, bool activo)
+    {
+        if (activo) rolesSeleccionados.Add(rol);
+        else rolesSeleccionados.Remove(rol);
+    }
+
+    private async Task Crear()
+    {
+        error = null;
+        var result = await AdminUserService.CrearUsuarioAsync(nuevo);
+        if (result.Succeeded) { mensaje = "Usuario creado."; nuevo = new(); await Cargar(); }
+        else error = string.Join("; ", result.Errors.Select(e => e.Description));
+    }
+
+    private async Task GuardarRoles()
+    {
+        if (usuarioSeleccionado is null) return;
+        var result = await AdminUserService.ActualizarRolesAsync(usuarioSeleccionado.Id, rolesSeleccionados);
+        if (result.Succeeded) { mensaje = "Roles actualizados."; await Cargar(); }
+        else error = string.Join("; ", result.Errors.Select(e => e.Description));
+    }
+
+    private async Task ReiniciarPassword()
+    {
+        if (usuarioSeleccionado is null || string.IsNullOrWhiteSpace(nuevaPassword)) return;
+        var result = await AdminUserService.ReiniciarPasswordAsync(usuarioSeleccionado.Id, nuevaPassword);
+        if (result.Succeeded) { mensaje = "Contraseña reiniciada."; nuevaPassword = ""; }
+        else error = string.Join("; ", result.Errors.Select(e => e.Description));
+    }
+}

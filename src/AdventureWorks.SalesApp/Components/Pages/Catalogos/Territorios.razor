@@ -1,0 +1,74 @@
+@page "/catalogos/territorios"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject ICatalogoService CatalogoService
+
+<PageTitle>Territorios</PageTitle>
+
+<h3>Territorios de Venta (Sales.SalesTerritory)</h3>
+
+@if (!string.IsNullOrEmpty(error)) { <div class="alert alert-danger">@error</div> }
+@if (!string.IsNullOrEmpty(mensaje)) { <div class="alert alert-info">@mensaje</div> }
+
+<button class="btn btn-primary mb-3" @onclick="Nuevo">Nuevo Territorio</button>
+
+@if (editando)
+{
+    <div class="card mb-3"><div class="card-body row g-2">
+        <div class="col-md-3"><label class="form-label">Nombre</label><input class="form-control" @bind="form.Name" /></div>
+        <div class="col-md-2"><label class="form-label">País</label><input class="form-control" maxlength="3" @bind="form.CountryRegionCode" /></div>
+        <div class="col-md-3"><label class="form-label">Grupo</label><input class="form-control" @bind="form.Group" /></div>
+        <div class="col-auto d-flex align-items-end gap-2">
+            <button class="btn btn-success" @onclick="Guardar">Guardar</button>
+            <button class="btn btn-outline-secondary" @onclick="() => editando = false">Cancelar</button>
+        </div>
+    </div></div>
+}
+
+<table class="table table-striped">
+    <thead class="table-dark"><tr><th>ID</th><th>Nombre</th><th>País</th><th>Grupo</th><th>Ventas YTD</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var t in items)
+        {
+            <tr>
+                <td>@t.TerritoryID</td><td>@t.Name</td><td>@t.CountryRegionCode</td><td>@t.Group</td>
+                <td>@t.SalesYTD.ToString("C")</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" @onclick="() => Editar(t)">Editar</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Eliminar(t.TerritoryID)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<TerritorioDto> items = [];
+    private TerritorioDto form = new();
+    private bool editando;
+    private string? mensaje, error;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        error = null;
+        try { items = (await CatalogoService.ListarTerritoriosAsync()).ToList(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private void Nuevo() { form = new(); editando = true; }
+    private void Editar(TerritorioDto t) { form = new TerritorioDto { TerritoryID = t.TerritoryID, Name = t.Name, CountryRegionCode = t.CountryRegionCode, Group = t.Group }; editando = true; }
+
+    private async Task Guardar()
+    {
+        try { await CatalogoService.GuardarTerritorioAsync(form); mensaje = "Guardado."; editando = false; await Cargar(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task Eliminar(int id)
+    {
+        try { await CatalogoService.EliminarTerritorioAsync(id); mensaje = "Eliminado."; await Cargar(); }
+        catch (Exception ex) { error = ex.Message; }
+    }
+}

@@ -1,0 +1,37 @@
+﻿@page "/Account/Login"
+
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using AdventureWorks.SalesApp.Data
+
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Iniciar sesión</PageTitle>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            if (HttpContext.User.Identity?.IsAuthenticated == true)
+            {
+                RedirectManager.RedirectTo(string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl);
+                return;
+            }
+
+            var dest = string.IsNullOrEmpty(ReturnUrl)
+                ? "/"
+                : $"/?returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+            NavigationManager.NavigateTo(dest, forceLoad: true);
+        }
+    }
+}

@@ -1,0 +1,81 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using AdventureWorks.SalesApp.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<LoginForm> Logger
+@inject IdentityRedirectManager RedirectManager
+
+<StatusMessage Message="@errorMessage" />
+<EditForm Model="Input" OnValidSubmit="LoginUser" FormName="loginForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" placeholder="correo@ejemplo.com" />
+        <label>Correo electrónico</label>
+        <ValidationMessage For="() => Input.Email" class="text-danger" />
+    </div>
+    <div class="form-floating mb-3">
+        <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" placeholder="contraseña" />
+        <label>Contraseña</label>
+        <ValidationMessage For="() => Input.Password" class="text-danger" />
+    </div>
+    <div class="form-check mb-3">
+        <InputCheckbox @bind-Value="Input.RememberMe" class="form-check-input" id="@rememberId" />
+        <label class="form-check-label" for="@rememberId">Recordarme</label>
+    </div>
+    <button type="submit" class="w-100 btn btn-primary btn-lg">Iniciar sesión</button>
+</EditForm>
+
+@if (ShowForgotPassword)
+{
+    <div class="text-center mt-3">
+        <a href="Account/ForgotPassword" class="small text-muted">¿Olvidó su contraseña?</a>
+    </div>
+}
+
+@code {
+    [Parameter] public string? ReturnUrl { get; set; }
+    [Parameter] public bool ShowForgotPassword { get; set; } = true;
+
+    private string? errorMessage;
+    private readonly string rememberId = $"remember-{Guid.NewGuid():N}";
+
+    private InputModel Input { get; set; } = new();
+
+    public async Task LoginUser()
+    {
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("Usuario autenticado.");
+            RedirectManager.RedirectTo(string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl);
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo("Account/LoginWith2fa",
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+        }
+        else if (result.IsLockedOut)
+        {
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            errorMessage = "Correo o contraseña incorrectos.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "El correo es obligatorio.")]
+        [EmailAddress(ErrorMessage = "Ingrese un correo válido.")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "La contraseña es obligatoria.")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        public bool RememberMe { get; set; }
+    }
+}

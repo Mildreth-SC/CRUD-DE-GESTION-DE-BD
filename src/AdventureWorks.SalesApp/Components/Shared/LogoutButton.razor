@@ -1,0 +1,17 @@
+<form action="Account/Logout" method="post" class="@CssClass">
+    <AntiforgeryToken />
+    <button type="submit" class="@ButtonClass">
+        @if (ShowIcon)
+        {
+            <span aria-hidden="true">⏻</span>
+        }
+        @Text
+    </button>
+</form>
+
+@code {
+    [Parameter] public string Text { get; set; } = "Salir";
+    [Parameter] public string ButtonClass { get; set; } = "btn btn-outline-light btn-sm w-100";
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter] public bool ShowIcon { get; set; }
+}
