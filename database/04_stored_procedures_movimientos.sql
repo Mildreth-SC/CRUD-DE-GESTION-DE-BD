@@ -221,12 +221,24 @@ BEGIN
     IF Sales.fn_OrdenAnulada(@SalesOrderID) = 1
         THROW 50011, N'No se puede agregar ítems a una venta anulada.', 1;
 
-    DECLARE @SpecialOfferID INT = 1;
+    DECLARE @SpecialOfferID INT;
 
     SELECT TOP 1 @SpecialOfferID = SpecialOfferID
-    FROM Sales.SpecialOfferProduct WHERE ProductID = @ProductID;
+    FROM Sales.SpecialOfferProduct
+    WHERE ProductID = @ProductID;
 
-    IF @SpecialOfferID IS NULL SET @SpecialOfferID = 1;
+    -- Oferta 1 = "No Discount"; si el producto no tiene oferta, registrar el par en el catálogo
+    IF @SpecialOfferID IS NULL
+    BEGIN
+        SET @SpecialOfferID = 1;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM Sales.SpecialOfferProduct
+            WHERE SpecialOfferID = @SpecialOfferID AND ProductID = @ProductID
+        )
+            INSERT INTO Sales.SpecialOfferProduct (SpecialOfferID, ProductID)
+            VALUES (@SpecialOfferID, @ProductID);
+    END
 
     INSERT INTO Sales.SalesOrderDetail (
         SalesOrderID, CarrierTrackingNumber, OrderQty, ProductID, SpecialOfferID,
