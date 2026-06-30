@@ -221,6 +221,15 @@ BEGIN
     IF Sales.fn_OrdenAnulada(@SalesOrderID) = 1
         THROW 50011, N'No se puede agregar ítems a una venta anulada.', 1;
 
+    IF @ProductID IS NULL OR @ProductID <= 0
+        THROW 50021, N'Seleccione un producto válido.', 1;
+
+    IF @OrderQty IS NULL OR @OrderQty <= 0
+        THROW 50022, N'La cantidad debe ser mayor a cero.', 1;
+
+    IF NOT EXISTS (SELECT 1 FROM Production.Product WHERE ProductID = @ProductID)
+        THROW 50023, N'El producto no existe en el catálogo (Production.Product).', 1;
+
     DECLARE @SpecialOfferID INT;
 
     SELECT TOP 1 @SpecialOfferID = SpecialOfferID

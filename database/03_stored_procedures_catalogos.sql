@@ -266,6 +266,13 @@ BEGIN
             @StandardCost, @ListPrice, 0, SYSDATETIME(), SYSDATETIME(), @ProductSubcategoryID
         );
         SET @ProductID = SCOPE_IDENTITY();
+
+        IF NOT EXISTS (
+            SELECT 1 FROM Sales.SpecialOfferProduct
+            WHERE SpecialOfferID = 1 AND ProductID = @ProductID
+        )
+            INSERT INTO Sales.SpecialOfferProduct (SpecialOfferID, ProductID)
+            VALUES (1, @ProductID);
     END
     ELSE
     BEGIN

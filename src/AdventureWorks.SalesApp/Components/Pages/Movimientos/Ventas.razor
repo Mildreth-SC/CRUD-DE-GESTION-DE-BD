@@ -94,10 +94,19 @@ else
         <div class="card mb-3">
             <div class="card-header">Agregar ítem</div>
             <div class="card-body row g-2">
-                <div class="col-md-2"><label class="form-label">Producto ID</label><input type="number" class="form-control" @bind="nuevoItem.ProductID" /></div>
-                <div class="col-md-2"><label class="form-label">Cantidad</label><input type="number" class="form-control" @bind="nuevoItem.OrderQty" /></div>
-                <div class="col-md-2"><label class="form-label">Precio</label><input type="number" step="0.01" class="form-control" @bind="nuevoItem.UnitPrice" /></div>
-                <div class="col-md-2"><label class="form-label">Descuento</label><input type="number" step="0.01" class="form-control" @bind="nuevoItem.UnitPriceDiscount" /></div>
+                <div class="col-md-4">
+                    <label class="form-label">Producto</label>
+                    <select class="form-select" @bind="nuevoItem.ProductID" @bind:after="AlSeleccionarProducto">
+                        <option value="0">-- Seleccione producto --</option>
+                        @foreach (var p in productosCatalogo)
+                        {
+                            <option value="@p.ProductID">@p.ProductID — @p.Name (@p.ListPrice.ToString("C"))</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2"><label class="form-label">Cantidad</label><input type="number" min="1" class="form-control" @bind="nuevoItem.OrderQty" /></div>
+                <div class="col-md-2"><label class="form-label">Precio</label><input type="number" step="0.01" min="0" class="form-control" @bind="nuevoItem.UnitPrice" /></div>
+                <div class="col-md-2"><label class="form-label">Descuento</label><input type="number" step="0.01" min="0" class="form-control" @bind="nuevoItem.UnitPriceDiscount" /></div>
                 <div class="col-auto d-flex align-items-end"><button class="btn btn-success" @onclick="AgregarItem">Agregar</button></div>
             </div>
         </div>
@@ -137,6 +146,7 @@ else
     [Parameter] public int SalesOrderId { get; set; }
 
     private List<VentaEncabezadoDto> ventas = [];
+    private List<ProductoDto> productosCatalogo = [];
     private VentaCompletaDto? venta;
     private VentaDetalleDto nuevoItem = new() { OrderQty = 1 };
     private DateTime? filtroInicio = new DateTime(2025, 1, 1);
@@ -163,8 +173,19 @@ else
     private async Task CargarVenta()
     {
         error = null;
-        try { venta = await VentaService.ObtenerVentaAsync(SalesOrderId); }
+        try
+        {
+            venta = await VentaService.ObtenerVentaAsync(SalesOrderId);
+            productosCatalogo = (await CatalogoService.ListarProductosAsync()).ToList();
+        }
         catch (Exception ex) { error = ex.Message; }
+    }
+
+    private void AlSeleccionarProducto()
+    {
+        var producto = productosCatalogo.FirstOrDefault(p => p.ProductID == nuevoItem.ProductID);
+        if (producto is not null)
+            nuevoItem.UnitPrice = producto.ListPrice;
     }
 
     private void Ver(int id) => Navigation.NavigateTo($"/movimientos/ventas/{id}");
@@ -199,6 +220,16 @@ else
     private async Task AgregarItem()
     {
         if (venta is null) return;
+        if (nuevoItem.ProductID <= 0)
+        {
+            error = "Seleccione un producto de la lista.";
+            return;
+        }
+        if (nuevoItem.OrderQty <= 0)
+        {
+            error = "La cantidad debe ser mayor a cero.";
+            return;
+        }
         try
         {
             await VentaService.AgregarDetalleAsync(venta.Encabezado.SalesOrderID, nuevoItem.ProductID,
