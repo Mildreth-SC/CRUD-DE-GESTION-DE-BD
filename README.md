@@ -21,6 +21,9 @@ cd database
 .\configurar_bd.ps1
 ```
 
+### Error al crear ventas (`QUOTED_IDENTIFIER`)
+Si en **Movimiento de Ventas** falla el INSERT con ese mensaje, en la carpeta `database` ejecuta **`REPARAR_VENTAS.bat`** (o vuelve a correr `configurar_bd.ps1` / `EJECUTAR_SCRIPTS.bat`).
+
 ## Ejecutar aplicación
 ```powershell
 cd src\AdventureWorks.SalesApp

@@ -13,7 +13,8 @@ $DatabaseFolder = $PSScriptRoot
 
 Write-Host "Configurando $Database en $Server ..." -ForegroundColor Cyan
 
-sqlcmd -S $Server -C -E -Q "SELECT 1" -h -1 | Out-Null
+# -I activa QUOTED_IDENTIFIER ON (requerido por tablas/triggers de AdventureWorks)
+sqlcmd -S $Server -C -E -I -Q "SELECT 1" -h -1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] No se pudo conectar a SQL Server ($Server)" -ForegroundColor Red
     exit 1
@@ -30,9 +31,9 @@ $scripts = @(
 foreach ($script in $scripts) {
     $path = Join-Path $DatabaseFolder $script
     Write-Host "  -> $script" -ForegroundColor Gray
-    sqlcmd -S $Server -C -E -d $Database -i $path
+    sqlcmd -S $Server -C -E -I -d $Database -i $path
     if ($LASTEXITCODE -ne 0) { exit 1 }
 }
 
-$count = sqlcmd -S $Server -C -E -d $Database -Q "SELECT COUNT(*) FROM Sales.Customer" -h -1 -W
+$count = sqlcmd -S $Server -C -E -I -d $Database -Q "SELECT COUNT(*) FROM Sales.Customer" -h -1 -W
 Write-Host "[OK] Listo. Clientes en BD: $count" -ForegroundColor Green

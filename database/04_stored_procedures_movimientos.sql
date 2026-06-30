@@ -107,6 +107,8 @@ CREATE OR ALTER PROCEDURE Sales.usp_Venta_Crear
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET ANSI_NULLS ON;
+    SET QUOTED_IDENTIFIER ON;
     BEGIN TRANSACTION;
     BEGIN TRY
         DECLARE @BillToAddressID INT;
@@ -184,6 +186,8 @@ CREATE OR ALTER PROCEDURE Sales.usp_Venta_ActualizarEncabezado
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET ANSI_NULLS ON;
+    SET QUOTED_IDENTIFIER ON;
     IF Sales.fn_OrdenAnulada(@SalesOrderID) = 1
         THROW 50010, N'No se puede modificar una venta anulada.', 1;
 
@@ -212,6 +216,8 @@ CREATE OR ALTER PROCEDURE Sales.usp_Venta_AgregarDetalle
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET ANSI_NULLS ON;
+    SET QUOTED_IDENTIFIER ON;
     IF Sales.fn_OrdenAnulada(@SalesOrderID) = 1
         THROW 50011, N'No se puede agregar ítems a una venta anulada.', 1;
 
@@ -249,6 +255,8 @@ CREATE OR ALTER PROCEDURE Sales.usp_Venta_ActualizarDetalle
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET ANSI_NULLS ON;
+    SET QUOTED_IDENTIFIER ON;
     DECLARE @SalesOrderID INT;
     SELECT @SalesOrderID = SalesOrderID FROM Sales.SalesOrderDetail WHERE SalesOrderDetailID = @SalesOrderDetailID;
 
@@ -276,6 +284,8 @@ CREATE OR ALTER PROCEDURE Sales.usp_Venta_EliminarDetalle
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET ANSI_NULLS ON;
+    SET QUOTED_IDENTIFIER ON;
     DECLARE @SalesOrderID INT;
     SELECT @SalesOrderID = SalesOrderID FROM Sales.SalesOrderDetail WHERE SalesOrderDetailID = @SalesOrderDetailID;
 
@@ -297,6 +307,8 @@ CREATE OR ALTER PROCEDURE Sales.usp_Venta_RecalcularTotales
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET ANSI_NULLS ON;
+    SET QUOTED_IDENTIFIER ON;
     DECLARE @SubTotal MONEY = Sales.fn_TotalOrden(@SalesOrderID);
     DECLARE @TaxAmt MONEY = @SubTotal * 0.08;
     DECLARE @Freight MONEY = CASE WHEN @SubTotal > 0 THEN 15.00 ELSE 0 END;
@@ -320,6 +332,8 @@ CREATE OR ALTER PROCEDURE Sales.usp_Venta_Anular
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET ANSI_NULLS ON;
+    SET QUOTED_IDENTIFIER ON;
     BEGIN TRANSACTION;
     BEGIN TRY
         IF Sales.fn_OrdenAnulada(@SalesOrderID) = 1
@@ -365,6 +379,8 @@ CREATE OR ALTER PROCEDURE Sales.usp_Venta_Confirmar
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET ANSI_NULLS ON;
+    SET QUOTED_IDENTIFIER ON;
     IF Sales.fn_OrdenAnulada(@SalesOrderID) = 1
         THROW 50015, N'No se puede confirmar una venta anulada.', 1;
 
